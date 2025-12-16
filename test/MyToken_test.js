@@ -390,6 +390,16 @@ describe("MyToken",function(){
 
         });
 
+        // pause event test
+        it("emits pause event", async()=>{
+
+            await expect(
+                token.pause()
+            ).to.emit(token,"Paused")
+            .withArgs(owner.address);
+            
+        }); 
+
 
     });
 
