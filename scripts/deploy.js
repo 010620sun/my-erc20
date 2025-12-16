@@ -8,15 +8,13 @@ async function main() {
 
   const MyToken = await ethers.getContractFactory("MyToken");
   const Staking = await ethers.getContractFactory("Staking");
-  const contract = await MyToken.deploy(1000000000000000000n);
-  const contract2 = await Staking.deploy(contract.target);
+  const mytoken = await MyToken.deploy(1000000000000000000n);
+  const staking = await Staking.deploy(mytoken.target);
 
-  console.log("Deploy tx hash:", contract.deploymentTransaction().hash);
+  console.log("Deploy tx hash:", mytoken.deploymentTransaction().hash);
 
-  const address = contract.target;
-  const address2 = contract2.target;
-  console.log("MyToken Contract deployed at:", address);
-  console.log("Staking Contract deployed at:", address2);
+  console.log("MyToken Contract deployed at:", mytoken.target);
+  console.log("Staking Contract deployed at:", staking.target);
 }
 
 main().catch((err) => {
