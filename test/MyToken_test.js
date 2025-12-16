@@ -397,9 +397,20 @@ describe("MyToken",function(){
                 token.pause()
             ).to.emit(token,"Paused")
             .withArgs(owner.address);
-            
+
         }); 
 
+        // abnormal pause(no access to pause)
+        it("no access to pause",async()=>{
+
+            const DEFAULT_ADMIN_ROLE= await token.DEFAULT_ADMIN_ROLE();
+
+            await expect(
+                token.connect(user1).pause()
+            ).to.be.revertedWithCustomError(token,"AccessControlUnauthorizedAccount")
+            .withArgs(user1.address,DEFAULT_ADMIN_ROLE);
+
+        });
 
     });
 
