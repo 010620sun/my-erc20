@@ -414,4 +414,50 @@ describe("MyToken",function(){
 
     });
 
+    // unpause() test
+    describe("unpause()",()=>{
+
+        beforeEach(async()=>{
+
+            await token.pause();
+            expect(
+                await token.paused()
+            ).to.be.equal(true);
+
+        });
+
+        // normal unpuase test
+        it("normal unpause",async()=>{
+
+            await token.unpause();
+            expect(
+                await token.paused()
+            ).to.be.equal(false);
+
+        });
+
+        // unpause event test
+        it("emits unpause event",async()=>{
+
+            await expect(
+                token.unpause()
+            ).to.emit(token,"Unpaused")
+            .withArgs(owner.address);
+
+        });
+
+        // abnormal unpause(no access to unpause) test
+        it("no access to unpause",async()=>{
+
+            const DEFAULT_ADMIN_ROLE= await token.DEFAULT_ADMIN_ROLE();
+
+            await expect(
+                token.connect(user1).unpause()
+            ).to.be.revertedWithCustomError(token,"AccessControlUnauthorizedAccount")
+            .withArgs(user1.address,DEFAULT_ADMIN_ROLE);
+
+        });
+
+    });
+
 });
