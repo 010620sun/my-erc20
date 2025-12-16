@@ -345,4 +345,52 @@ describe("MyToken",function(){
 
     });
 
+    // pause() test
+    describe("pause()",()=>{
+
+        // normal pause() test
+        it("normal pause",async()=>{
+
+            await token.pause();
+            expect(
+                await token.paused()
+            ).to.be.equal(true);
+
+            // transfer occur revert when puased
+            await expect(
+                token.transfer(user1.address,smallAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+            // transferfrom occur revert when paused
+            await expect(
+                token.transferFrom(owner.address,user1.address,smallAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+            // approve occur revert when paused
+            await expect(
+                token.approve(user1.address,smallAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+            // mint occur revert when paused
+            await expect(
+                token.mint(owner.address,defaultAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+            // burn occur revert when paused
+            await expect(
+                token.burn(owner.address,smallAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+            // airdrop occur revert when paused
+            const receivers = [user1.address,user2.address];
+
+            await expect(
+                token.airdrop(receivers,smallAmount)
+            ).to.be.revertedWithCustomError(token,"EnforcedPause");
+
+        });
+
+
+    });
+
 });
