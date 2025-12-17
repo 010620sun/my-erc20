@@ -361,6 +361,7 @@ describe("MyToken",function(){
         // normal pause() test
         it("normal pause",async()=>{
 
+            await token.approve(user1.address,smallAmount);
             await token.pause();
             expect(
                 await token.paused()
@@ -373,7 +374,7 @@ describe("MyToken",function(){
 
             // transferfrom occur revert when paused
             await expect(
-                token.transferFrom(owner.address,user1.address,smallAmount)
+                token.connect(user1).transferFrom(owner.address,user1.address,smallAmount)
             ).to.be.revertedWithCustomError(token,"EnforcedPause");
 
             // approve occur revert when paused
