@@ -45,7 +45,7 @@ describe("MyToken",function(){
         });
 
         // Transfer event test
-        it("emits Trsansfer event",async()=>{
+        it("emits Transfer event",async()=>{
 
             await expect(
                 token.transfer(user1.address,smallAmount)
@@ -325,11 +325,21 @@ describe("MyToken",function(){
             airdropAmount = ethers.parseUnits("0.01", 18);
 
             const tx = await token.airdrop(receivers,airdropAmount);
+            const receipt = await tx.wait();
             
-            for(let r of receivers){
-                await expect(tx).to.emit(token,"Transfer").withArgs(owner.address,r,airdropAmount);
-            }
+            const events = await token.queryFilter(
+                token.filters.Transfer(owner.address),
+                receipt.blockNumber,
+                receipt.blockNumber
+            );
 
+            expect(events.length).to.equal(receivers.length);
+
+            receivers.forEach((receiver, i) => {
+                expect(events[i].args.from).to.equal(owner.address);
+                expect(events[i].args.to).to.equal(receiver);
+                expect(events[i].args.value).to.equal(airdropAmount);
+            });
         });
 
         // abnormal airdrop(unsufficient balance) test
