@@ -39,12 +39,26 @@ contract Staking is ReentrancyGuard{
         return rewards[account];
     }
 
-    function updateReward()public{
+    function earned(address account) external view returns(uint256){
+
+        uint256 lastReward = rewards[account];
+        uint256 time = block.timestamp - lastUpdated[account];
+        uint256 nowReward = lastReward + (staked[account]*REWARD_RATE_PER_SECOND*time)/1e18; 
+
+        return nowReward;
+    }
+
+    function updateReward() internal{
 
         address owner = msg.sender;
+        
+        if(lastUpdated[owner]==0){
+            lastUpdated[owner]=block.timestamp;
+            return;
+        }
         uint256 time = block.timestamp - lastUpdated[owner];
 
-        if(staked[msg.sender]>0 && time>0){
+        if(staked[owner]>0 && time>0){
             rewards[owner]+=(staked[owner]*REWARD_RATE_PER_SECOND*time)/1e18;
         }
 
@@ -53,6 +67,8 @@ contract Staking is ReentrancyGuard{
     }
 
     function finalizeReward() external nonReentrant{
+
+        updateReward();
 
         address owner = msg.sender;
         if(rewards[owner]<=0){
