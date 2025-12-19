@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IMintable is IERC20{
@@ -12,7 +11,7 @@ contract Staking is ReentrancyGuard{
     
     uint256 constant REWARD_RATE_PER_YEAR = 5e16; // 5%
     uint256 constant SECONDS_PER_YEAR = 365 days;
-    uint256 constant REWARD_RATE_PER_SECOND = REWARD_RATE_PER_YEAR / SECONDS_PER_YEAR;
+    uint256 constant public REWARD_RATE_PER_SECOND = REWARD_RATE_PER_YEAR / SECONDS_PER_YEAR;
 
     mapping(address=>uint256)private staked;
     mapping(address=>uint256)private lastUpdated;
@@ -27,8 +26,8 @@ contract Staking is ReentrancyGuard{
 
     IMintable public token;
 
-    constructor(address deployer){
-        token=IMintable(deployer);
+    constructor(address tokenAddress){
+        token=IMintable(tokenAddress);
     }
 
     function getStaked(address account)external view returns(uint256){
