@@ -11,6 +11,9 @@ async function main() {
   const mytoken = await MyToken.deploy(1000000000000000000n);
   const staking = await Staking.deploy(mytoken.target);
 
+  const MINTER_ROLE = await mytoken.MINTER_ROLE();
+  await mytoken.grantRole(MINTER_ROLE,staking.target);
+
   console.log("Deploy tx hash:", mytoken.deploymentTransaction().hash);
 
   console.log("MyToken Contract deployed at:", mytoken.target);
