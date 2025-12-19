@@ -19,6 +19,8 @@ describe("Staking",()=>{
         token = await Token.deploy(initialSupply);
         staking = await Staking.deploy(token.target);
 
+        const MINTER_ROLE = await token.MINTER_ROLE();
+        await token.grantRole(MINTER_ROLE,staking.target);
     });
 
     // stake() test
@@ -67,9 +69,9 @@ describe("Staking",()=>{
         it("revert when there's insufficient approval to stake",async()=>{
 
             stakeAmount = defaultAmount;
-            const apporvalAmount = smallAmount;
+            const approvalAmount = smallAmount;
 
-            await token.approve(staking.target,apporvalAmount);
+            await token.approve(staking.target,approvalAmount);
             await expect(
                 staking.stake(stakeAmount)
             ).to.be.revertedWithCustomError(token,"ERC20InsufficientAllowance");
@@ -77,104 +79,76 @@ describe("Staking",()=>{
         });
 
     });
-
-    // updateReward() test
-    describe("updateReward()",()=>{
-
-        let stakeAmount;
-
-        // reward increase check
-        it("reward increases over time",async()=>{
-
-            stakeAmount=smallAmount;
-            const expected = smallAmount * 86400n / (365n * 86400n);
-
-            await token.approve(staking.target,smallAmount);
-            await staking.stake(smallAmount);
-            expect(
-                await staking.getReward(owner.address)
-            ).to.be.equal(0n);
-
-            await ethers.provider.send("evm_increaseTime", [86400]); 
-            await ethers.provider.send("evm_mine");
-            
-            await staking.updateReward();
-            expect(
-                await staking.getReward(owner.address)
-            ).to.be.greaterThan(0n);
-
-            });
-
-    });
     
     // finalizeReward() test
     describe("finalizeReward()",()=>{
 
-        let stakeAmount;
+        const stakeAmount = smallAmount;
 
-        beforeEach(async()=>{
-
-            const MINTER_ROLE = await token.MINTER_ROLE();
-
-            await token.grantRole(MINTER_ROLE,staking.target);
-
+        afterEach(async()=>{
+            await network.provider.send("evm_setAutomine", [true]);
         });
 
         // normal finialize
         it("finalize reward",async()=>{
 
-            stakeAmount = smallAmount;
-
-            await token.approve(staking.target,smallAmount);
-            await staking.stake(smallAmount);
+            await token.approve(staking.target,stakeAmount);
+            await staking.stake(stakeAmount);
             expect(
                 await staking.getStaked(owner)
-            ).to.be.equal(smallAmount);
+            ).to.be.equal(stakeAmount);
+            
+            // freeze timestamp so reward is calculated for exactly 1 block
+            await network.provider.send("evm_setAutomine", [false]);
 
-            await staking.updateReward();
-            const reward = await staking.getReward(owner.address);
-            const balance = await token.balanceOf(owner.address);
+            const beforeBalance = await token.balanceOf(owner.address);
+            const REWARD_RATE_PER_SECOND = await staking.REWARD_RATE_PER_SECOND();
+            const expectReward = (stakeAmount*3600n*REWARD_RATE_PER_SECOND)/(10n**18n);
+
+            // 1hour delay
+            await network.provider.send("evm_increaseTime", [3600]);
 
             await staking.finalizeReward();
-            expect(
-                await staking.getReward(owner.address)
-            ).to.be.equal(0n);
+
+            // block creation after finalizeReward()
+            await network.provider.send("evm_mine");
+
+            await network.provider.send("evm_setAutomine", [true]);
+
             expect(
                 await token.balanceOf(owner.address)
-            ).to.be.equal(balance+reward);
+            ).to.be.equal(beforeBalance+expectReward);
 
         });
 
         // no rewards
-        it("revert when there's no stake reward",async()=>{
+        it("revert when there's no staked reward",async()=>{
 
-            await staking.updateReward();
             await expect(
                 staking.finalizeReward()
             ).to.be.revertedWithCustomError(staking,"NotEnoughReward")
             .withArgs(owner.address);
-
         });
 
         // finalizeReward event test
         it("emit event when finalize Reward",async()=>{
 
-            stakeAmount = smallAmount;
-
-            await token.approve(staking.target,smallAmount);
-            await staking.stake(smallAmount);
+            await token.approve(staking.target,stakeAmount);
+            await staking.stake(stakeAmount);
             expect(
                 await staking.getStaked(owner)
-            ).to.be.equal(smallAmount);
+            ).to.be.equal(stakeAmount);
 
-            await staking.updateReward();
-            const reward = await staking.getReward(owner.address);
+            // 1hour delay
+            await network.provider.send("evm_increaseTime", [3600]);
 
             await expect(
                 staking.finalizeReward()
-            ).to.emit(staking,"FinalizeReward")
-            .withArgs(owner.address,reward);
-
+            ).to.emit(staking,"FinalizeReward");
+            expect(
+                await staking.getReward(owner.address)
+            ).to.be.equal(0n);
+            
         });
 
     });
@@ -182,9 +156,9 @@ describe("Staking",()=>{
     // unstake() test
     describe("unstake()", ()=>{
 
-        beforeEach(async()=>{
+        const stakeAmount = defaultAmount;
 
-            const stakeAmount = defaultAmount;
+        beforeEach(async()=>{
             
             await token.approve(staking.target,stakeAmount);
             await staking.stake(stakeAmount);
@@ -200,22 +174,22 @@ describe("Staking",()=>{
             const balance = await token.balanceOf(owner.address);
             const staked = await staking.getStaked(owner.address);
 
-            await staking.unstake(smallAmount);
+            await staking.unstake(stakeAmount);
             expect(
                 await token.balanceOf(owner.address)
-            ).to.be.equal(balance+smallAmount);
+            ).to.be.equal(balance+stakeAmount);
             expect(
                 await staking.getStaked(owner.address)
-            ).to.be.equal(staked-smallAmount);
+            ).to.be.equal(staked-stakeAmount);
         });
 
         // unstake event test
         it("emit Unstake event",async()=>{
 
             await expect(
-                staking.unstake(defaultAmount)
+                staking.unstake(stakeAmount)
             ).to.emit(staking,"Unstake")
-            .withArgs(owner.address,defaultAmount);
+            .withArgs(owner.address,stakeAmount);
         
         });
 
