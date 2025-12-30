@@ -10,8 +10,12 @@ async function main() {
 
   const MyToken = await ethers.getContractFactory("MyToken");
   const Staking = await ethers.getContractFactory("Staking");
+
   const mytoken = await MyToken.deploy(initialSupply);
+  await mytoken.waitForDeployment();
+  
   const staking = await Staking.deploy(mytoken.target);
+  await staking.waitForDeployment();
 
   const MINTER_ROLE = await mytoken.MINTER_ROLE();
   await mytoken.grantRole(MINTER_ROLE,staking.target);
