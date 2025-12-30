@@ -4,13 +4,13 @@ async function main() {
   
   const [deployer] = await ethers.getSigners();
   const DECIMALS = 18;
-  const HUNDRED_TOKENS = ethers.parseUnits("100", DECIMALS);
+  const initialSupply = ethers.parseUnits("1000000", DECIMALS);
 
   console.log("Using account:", deployer.address);
 
   const MyToken = await ethers.getContractFactory("MyToken");
   const Staking = await ethers.getContractFactory("Staking");
-  const mytoken = await MyToken.deploy(HUNDRED_TOKENS);
+  const mytoken = await MyToken.deploy(initialSupply);
   const staking = await Staking.deploy(mytoken.target);
 
   const MINTER_ROLE = await mytoken.MINTER_ROLE();
