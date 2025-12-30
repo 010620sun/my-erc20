@@ -56,7 +56,7 @@ contract Staking is ReentrancyGuard{
         updateReward();
 
         address owner = msg.sender;
-        if(rewards[owner]<=0){
+        if(rewards[owner]==0){
             revert NotEnoughReward(owner);
         }
         uint256 reward = rewards[owner];
