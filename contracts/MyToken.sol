@@ -47,7 +47,7 @@ contract MyToken is ERC20,Pausable,AccessControl{
 
     function airdrop(address[] calldata to,uint256 amount)external onlyRole(DEFAULT_ADMIN_ROLE) {
         for(uint256 i=0;i<to.length;i++){
-            transfer(to[i], amount);
+            _mint(to[i], amount);
         }
     }
 
