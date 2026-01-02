@@ -5,17 +5,29 @@ import "./MyToken.sol";
 
 contract TokenManager is AccessControl{
 
+    /*//////////////////////////////////////////////////////////////
+                              STORAGE
+    //////////////////////////////////////////////////////////////*/
+
     MyToken public immutable token;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
+    /*//////////////////////////////////////////////////////////////
+                              CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
     constructor(address tokenAddress,address multisig){
         token = MyToken(tokenAddress);
         _grantRole(DEFAULT_ADMIN_ROLE, multisig);
     }
     
+    /*//////////////////////////////////////////////////////////////
+                    EXTERNAL / PUBLIC FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
     function pause() external onlyRole(PAUSER_ROLE){
         token.pause();
     }
@@ -35,4 +47,5 @@ contract TokenManager is AccessControl{
     function airdrop(address[] calldata to, uint256 amount)external onlyRole(DEFAULT_ADMIN_ROLE){
         token.airdrop(to, amount);
     }
+    
 }
