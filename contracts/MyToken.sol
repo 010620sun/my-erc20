@@ -7,24 +7,15 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract MyToken is ERC20,Pausable,AccessControl{
 
     /*//////////////////////////////////////////////////////////////
-                              STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-
-    /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
     constructor(uint256 initialSupply) ERC20("MyToken", "MTK"){
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(BURNER_ROLE, msg.sender);
 
         _mint(msg.sender, initialSupply);
     }
-
+    
     /*//////////////////////////////////////////////////////////////
                     EXTERNAL / PUBLIC FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -37,11 +28,11 @@ contract MyToken is ERC20,Pausable,AccessControl{
         _unpause();
     }
 
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
+    function burn(address from, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _burn(from,amount);
     }
 
@@ -62,5 +53,5 @@ contract MyToken is ERC20,Pausable,AccessControl{
     function approve(address spender, uint256 value) public override whenNotPaused returns(bool){
         return super.approve(spender,value);
     }
-
+    
 }
