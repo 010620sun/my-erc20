@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 // interface for mint function
-interface IMintable is IERC20{
+interface ITokenManager {
     function mint(address to, uint256 amount)external;
 }
 
@@ -37,14 +37,16 @@ contract Staking is ReentrancyGuard{
     mapping(address=>uint256)private lastUpdated;
     mapping(address=>uint256)private rewards;   
 
-    IMintable public token;
+    IERC20 public token;
+    ITokenManager public manager;
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address tokenAddress){
-        token=IMintable(tokenAddress);
+    constructor(address tokenAddress, address tokenManagerAddress){
+        token = IERC20(tokenAddress);
+        manager = ITokenManager(tokenManagerAddress);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -60,7 +62,7 @@ contract Staking is ReentrancyGuard{
             revert NotEnoughReward(owner);
         }
         uint256 reward = rewards[owner];
-        token.mint(owner, reward);
+        manager.mint(owner, reward);
         rewards[owner]=0;
 
         emit FinalizeReward(owner,reward);
