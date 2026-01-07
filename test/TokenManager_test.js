@@ -264,10 +264,15 @@ describe("TokenManager",()=>{
             const initialDeployerBalance = await token.balanceOf(deployer.address);
 
             await tokenManager.connect(multisig).burn(deployer.address,defaultAmount);
+
             expect(
                 await token.balanceOf(deployer.address)
             ).to.be.equal(initialDeployerBalance-defaultAmount);
 
+            expect(
+                await token.totalSupply()
+            ).to.be.equal(initialSupply-defaultAmount);
+            
         });
 
         // event test when burn
