@@ -21,7 +21,7 @@ contract TokenManager is AccessControl{
 
     constructor(address tokenAddress,address multisig){
         token = MyToken(tokenAddress);
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, multisig);
     }
     
     /*//////////////////////////////////////////////////////////////
